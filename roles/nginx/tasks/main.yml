@@ -1,0 +1,71 @@
+- name: Docker network creation
+  docker_network:
+    name: "allspark"
+
+- name: Create nginx config folder
+  file:
+    state: directory
+    path: "{{ allspark_root_directory }}/config/nginx"
+
+- name: Create nginx data certs folder
+  file:
+    state: directory
+    path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/"
+  when: allspark_nginx.selfsigned.enabled
+
+- name: Generate an OpenSSL private key with an algorithm DSA with size 2048
+  openssl_privatekey:
+    path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.key"
+    type: RSA
+    size: 2048
+  when: allspark_nginx.selfsigned.enabled
+
+- name: Generate an OpenSSL Certificate Signing Request
+  openssl_csr:
+    path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.csr"
+    privatekey_path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.key"
+    country_name: "{{ allspark_nginx.selfsigned.country }}"
+    state_or_province_name: "{{ allspark_nginx.selfsigned.state }}"
+    locality_name: "{{ allspark_nginx.selfsigned.location }}"
+    organization_name: "{{ allspark_nginx.selfsigned.organisation }}"
+    common_name: "{{ allspark_nginx.selfsigned.common_name }}"
+    organizational_unit_name: "{{ allspark_nginx.selfsigned.organizational_unit }}"
+  when: allspark_nginx.selfsigned.enabled
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.crt"
+    privatekey_path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.key"
+    csr_path: "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.csr"
+    provider: selfsigned
+  when: allspark_nginx.selfsigned.enabled
+
+- name: Prepare nginx configuration
+  template:
+    src: templates/artifactory.conf.j2
+    dest: "{{ allspark_root_directory }}/config/nginx/artifactory.conf"
+
+- name: Setup ingress manager
+  docker_container:
+    name: nginx
+    image: "{{ downloads.nginx.image }}:{{ downloads.nginx.tag }}"
+    purge_networks: true
+    volumes: >-
+      [
+      "{{ allspark_root_directory }}/config/nginx/artifactory.conf:/etc/nginx/conf.d/artifactory.conf",
+      "/var/run/docker.sock:/var/run/docker.sock",
+        {% if allspark_nginx.selfsigned.enabled %}
+        "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.crt:/etc/ssl/certs/myserver.crt",
+        "{{ allspark_root_directory }}/data/secrets/nginx/certs/myserver.key:/etc/ssl/certs/myserver.key",
+        {% endif %}
+      ]
+    ports: >-
+      [
+      "80:80",
+      {% if allspark_nginx.selfsigned.enabled %}
+      "443:443",
+      {% endif %}
+      ]
+    networks:
+      - name: allspark
+    restart_policy: always

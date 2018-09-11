@@ -1,0 +1,20 @@
+---
+# defaults file for Artifactory
+
+allspark_root_domain: nginx.localhost
+allspark_hostname: toto
+allspark_root_directory: /opt/artifactory
+allspark_admin_user: admin_devops
+
+allspark_docker_version: "18.03.1"
+
+allspark_nginx:
+  selfsigned:
+    enabled: true
+    # For example country: FR
+    country: FR
+    state: state
+    location: city
+    organisation: myteam
+    organizational_unit: myorganizational_unit
+    common_name: "*.{{ allspark_root_domain }}"

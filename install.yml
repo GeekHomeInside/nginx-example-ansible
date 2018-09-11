@@ -1,0 +1,12 @@
+---
+# This playbook deploys the whole artifactory stack
+
+- name: Deploys the whole artifactory stack
+  hosts: all
+  roles:
+    - system
+    - pip
+    - { role: download, tags: [ "download", "prepare" ] }
+    - local_datas
+    - nginx
+    - artifactory

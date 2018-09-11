@@ -1,0 +1,18 @@
+# Images
+nginx_image: nginx
+
+# Tags
+nginx_tag: 1.15.3
+
+# Downloads
+downloads:
+  nginx:
+    enabled: true
+    image: "{{ nginx_image }}"
+    tag: "{{ nginx_tag }}"
+
+# Misc
+
+## Set this to true to force the download of every images, even if they are
+## disabled in the configuration
+force_download: false
