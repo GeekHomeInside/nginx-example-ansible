@@ -9,4 +9,3 @@
     - { role: download, tags: [ "download", "prepare" ] }
     - local_datas
     - nginx
-    - artifactory
