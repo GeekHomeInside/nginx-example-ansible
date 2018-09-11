@@ -9,7 +9,7 @@ This installer use ansible to setup Nginx on a Linux environment using Docker 18
 > Install Nginx on the machine
 
 
-## Install from an Artifactory release
+## Install from an Nginx release
 
 For each install do:
 - Generate an ssh key
@@ -26,6 +26,10 @@ for example:
   - Change the `allspark_hostname` to use your hostname
 
 - `ansible-playbook -i hosts install.yml`
+
+## HowTo use a different config or add additionnal config
+
+> Work in progress
 
 ## Components
 
